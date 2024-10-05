@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="style.css" />
+    <title>QR -Code Generator</title>
+  </head>
+  <body>
+    <div class="container">
+      <p>Enter your text or URL</p>
+      <input type="text" placeholder="Text or URL" id="qrText" />
+      <div id="imgBox">
+        <img src="" id="qrImage" />
+      </div>
+      <button onclick="generateQR()">Generate QR Code</button>
+      <!-- Download button -->
+      <button id="downloadBtn">Download QR Code</button>
+    </div>
+
+    <script>
+      let imgBox = document.getElementById("imgBox");
+      let qrImage = document.getElementById("qrImage");
+      let qrText = document.getElementById("qrText");
+
+      function generateQR() {
+        if (qrText.value.length > 0) {
+          // Set the source of the image
+          qrImage.src =
+            "https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=" +
+            encodeURIComponent(qrText.value);
+          imgBox.classList.add("show-img");
+        } else {
+          // Add error animation if input is empty
+          qrText.classList.add("error");
+          setTimeout(() => {
+            qrText.classList.remove("error");
+          }, 1000);
+        }
+      }
+
+      // Download the QR code as an image
+      document.getElementById("downloadBtn").addEventListener("click", function () {
+          if (qrImage.src) {
+            // Create a canvas element to draw the image for downloading
+            const canvas = document.createElement("canvas");
+            const context = canvas.getContext("2d");
+            const img = new Image();
+
+            img.crossOrigin = "anonymous"; // Prevent CORS issues
+            img.src = qrImage.src;
+
+            img.onload = () => {
+              // Set canvas size to the image size
+              canvas.width = img.width;
+              canvas.height = img.height;
+              // Draw the image onto the canvas
+              context.drawImage(img, 0, 0);
+
+              // Generate filename based on input text
+              let inputText = qrText.value;
+              let fileName = "qr-code.png"; // Default filename
+
+              // Extract meaningful part of the input for the filename
+              if (inputText.includes("youtube")) {
+                fileName = "youtube-qr-code.png";
+              } else if (inputText.includes("http")) {
+                // Extract domain name for URLs
+                let url = new URL(inputText);
+                fileName = `${url.hostname}-qr-code.png`;
+              } else {
+                // Use first few words of the text input
+                fileName =
+                  inputText.split(" ").slice(0, 3).join("_") + "-qr-code.png";
+              }
+
+              // Create a link to download the image
+              const link = document.createElement("a");
+              link.href = canvas.toDataURL("image/png");
+              link.download = fileName;
+              link.click();
+            };
+          } else {
+            alert("Please generate a QR code first!");
+          }
+        });
+    </script>
+  </body>
+</html>
